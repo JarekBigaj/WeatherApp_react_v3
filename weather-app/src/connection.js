@@ -6,5 +6,9 @@ export const informationAboutWeather = (selectedCity) => {
     switch(selectedCity){
         case `Krakow` : 
         return API_URL_KRAKOW;
+        case `Marcowka` :
+        return API_URL_MARCOWKA;
+        case `Warsaw` :
+        return API_URL_WARSAW;
     }
 }

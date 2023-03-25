@@ -1,23 +1,37 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { informationAboutWeather, informationAboutWeatherInSelectedCity } from "./connection";
 
 const citiesButtonsValues = ['Krakow', 'Marcowka', 'Warsaw'];
 
 function App() {
-  const [currentCity, setCurrenCity] = useState(() => {
-    return 'Krakow'
-  });
+  const [currentCity, setCurrenCity] = useState('Krakow');
+  const [weatherData, setWeatherData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const informationCurrentCityWeather = informationAboutWeather((currentCity));
+  useEffect(() => {
+    const informationCurrentCityWeather = informationAboutWeather((currentCity));
 
-  const showCurrentCityWeather = fetch(informationCurrentCityWeather)
-  .then(response => response.json())
-  .then(response => {
-    const {current_weather} = response;
-    console.log(current_weather);
-  })
-
+    const showCurrentCityWeather = fetch(informationCurrentCityWeather)
+    .then(response => {
+      if(!response.ok){
+        throw new Error(`This is an HTTP error: The status is ${response.status}`);
+      }
+      return response.json()
+    })
+    .then(({current_weather}) => {
+      setWeatherData(current_weather);
+      setError(null);
+    })
+    .catch((err) => {
+      setError(err.message)
+      setWeatherData(null);
+    })
+    .finally(()=>{
+      setLoading(false);
+    });
+  },[currentCity]);
 
   return (
     <div>
@@ -28,7 +42,7 @@ function App() {
         <ButtonBox>
           {
             citiesButtonsValues.map((value,index) => {
-              return <Button key={index} value={value} />
+              return <Button key={index} value={value} onClick={() => setCurrenCity(value)} />
             })
           }
         </ButtonBox>
@@ -60,8 +74,8 @@ const ButtonBox = ({children}) =>{
   return <div>{children}</div>
 }
 
-const Button = ({value}) =>{
-  return <button>{value}</button>
+const Button = ({value, onClick}) =>{
+  return <button onClick={onClick}>{value}</button>
 }
 
 const Temperature = () => {
