@@ -1,6 +1,8 @@
 import styled from "styled-components";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { informationAboutWeather, informationAboutWeatherInSelectedCity } from "./connection";
+
+const WeatherContext = createContext(null);
 
 const citiesButtonsValues = ['Krakow', 'Marcowka', 'Warsaw'];
 
@@ -32,13 +34,16 @@ function App() {
       setLoading(false);
     });
   },[currentCity]);
+ 
+  const sendedDataTime = weatherData ? weatherData.time : '';
 
   return (
     <div>
       <WeatherAppWrapper>
-        <Date/>
-        <Time/>
-        <Title/>
+        <LoadingMessage loading={loading}/>
+        <ErrorMessage error={error}/>
+        <DataTimeWrapper dateTime={sendedDataTime}/>
+        <Title city={currentCity}/>
         <ButtonBox>
           {
             citiesButtonsValues.map((value,index) => {
@@ -46,9 +51,9 @@ function App() {
             })
           }
         </ButtonBox>
-        <Temperature/>
-        <Wind/>
-        <InformationAboutWheater/>
+        <WeatherContext.Provider value={weatherData}>
+          <InformationAboutWheaterWrapper/>
+        </WeatherContext.Provider>
       </WeatherAppWrapper>
     </div>
   );
@@ -58,16 +63,44 @@ const WeatherAppWrapper = ({children}) => {
   return <div>{children}</div>
 }
 
-const Date = () =>{
-  return <span>data</span>
+const LoadingMessage = ({loading}) =>{
+  return (
+      <div>
+        {loading && <span>A moment please...</span>}
+      </div>
+    );
 }
 
-const Time = () =>{
-  return <span>Time</span>
+
+const ErrorMessage = ({error}) =>{
+  return (
+    <div>
+      {error && <div>{`There is a problem with data - ${error}`}</div>}
+    </div>
+  )
 }
 
-const Title = () =>{
-  return <h1>Pogodynka</h1>
+const DataTimeWrapper = ({dateTime}) => {
+  const [date,time] = dateTime.split("T");
+
+  return (
+      <div>
+        <Date date={date}/>
+        <Time time={time}/>
+      </div>
+    )
+}
+
+const Date = ({date}) =>{
+  return <span>{date}</span>
+}
+
+const Time = ({time}) =>{
+  return <span>{time}</span>
+}
+
+const Title = ({city}) =>{
+  return <h1>{city}</h1>
 }
 
 const ButtonBox = ({children}) =>{
@@ -79,7 +112,9 @@ const Button = ({value, onClick}) =>{
 }
 
 const Temperature = () => {
-  return <span>Temperature</span>
+  const weatherData = useContext(WeatherContext);
+  const temperature = weatherData ? weatherData.temperature : '';
+  return <span>{temperature}</span>
 }
 
 const Wind = () => {
@@ -92,14 +127,36 @@ const Wind = () => {
 }
 
 const WindDirection = () => {
-  return <span>WindDirection</span>
+  const weatherData = useContext(WeatherContext);
+  const winddirection = weatherData ? weatherData.winddirection : '';
+  return <span>{winddirection}</span>
 }
 
 const WindSpeed = () => {
-  return <span>WindSpeed</span>
+  const weatherData = useContext(WeatherContext);
+  const windspeed = weatherData ? weatherData.windspeed : '';
+  return <span>{windspeed}</span>
 }
 
 const InformationAboutWheater = () => {
-  return <span>InformationAboutWheater</span>
+  const weatherData = useContext(WeatherContext);
+  const weathercode = weatherData ? weatherData.weathercode : '';
+  return <span>{weathercode}</span>
 }
+
+const InformationAboutWheaterWrapper = ({children}) =>{
+  return (
+    <div>
+        <Temperature />
+        <Wind/>
+        <InformationAboutWheater/>
+    </div>
+  )
+}
+
+const StyledWeatherAppWrapper = styled.div`
+  text-align: center;
+`;
+
+
 export default App;
