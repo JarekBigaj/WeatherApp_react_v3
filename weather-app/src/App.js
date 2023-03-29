@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { createContext, useContext, useEffect, useState } from "react";
-import { informationAboutWeather, informationAboutWeatherInSelectedCity } from "./connection";
+import { informationAboutWeather} from "./connection";
 
 const WeatherContext = createContext(null);
 
@@ -15,7 +15,7 @@ function App() {
   useEffect(() => {
     const informationCurrentCityWeather = informationAboutWeather((currentCity));
 
-    const showCurrentCityWeather = fetch(informationCurrentCityWeather)
+    fetch(informationCurrentCityWeather)
     .then(response => {
       if(!response.ok){
         throw new Error(`This is an HTTP error: The status is ${response.status}`);
@@ -33,6 +33,7 @@ function App() {
     .finally(()=>{
       setLoading(false);
     });
+
   },[currentCity]);
  
   const sendedDataTime = weatherData ? weatherData.time : '';
@@ -44,6 +45,9 @@ function App() {
         <ErrorMessage error={error}/>
         <DataTimeWrapper dateTime={sendedDataTime}/>
         <Title city={currentCity}/>
+        <WeatherContext.Provider value={weatherData}>
+          <InformationAboutWheaterWrapper/>
+        </WeatherContext.Provider>
         <ButtonBox>
           {
             citiesButtonsValues.map((value,index) => {
@@ -51,16 +55,13 @@ function App() {
             })
           }
         </ButtonBox>
-        <WeatherContext.Provider value={weatherData}>
-          <InformationAboutWheaterWrapper/>
-        </WeatherContext.Provider>
       </WeatherAppWrapper>
     </div>
   );
 }
 
 const WeatherAppWrapper = ({children}) => {
-  return <div>{children}</div>
+  return <StyledWeatherAppWrapper>{children}</StyledWeatherAppWrapper>
 }
 
 const LoadingMessage = ({loading}) =>{
@@ -84,59 +85,87 @@ const DataTimeWrapper = ({dateTime}) => {
   const [date,time] = dateTime.split("T");
 
   return (
-      <div>
+      <StyledDataTimeWrapper>
         <Date date={date}/>
         <Time time={time}/>
-      </div>
+      </StyledDataTimeWrapper>
     )
 }
 
-const Date = ({date}) =>{
-  return <span>{date}</span>
-}
+const Date = styled(({className, date}) =>{
+  return <span className={className}>{date}</span>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 1.3rem;
+  text-align: left;
+`;
 
-const Time = ({time}) =>{
-  return <span>{time}</span>
-}
+const Time = styled(({className, time}) =>{
+  return <span className={className}>{time}</span>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 1.3rem;
+  text-align: right;
+`;
 
-const Title = ({city}) =>{
-  return <h1>{city}</h1>
-}
+const Title = styled(({className, city}) =>{
+  return <h1 className={className}>{city}</h1>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 3rem;
+`;
 
 const ButtonBox = ({children}) =>{
-  return <div>{children}</div>
+  return <StyledButtonBox>{children}</StyledButtonBox>
 }
 
 const Button = ({value, onClick}) =>{
-  return <button onClick={onClick}>{value}</button>
+  return <StyledButton onClick={onClick}>{value}</StyledButton>
 }
 
-const Temperature = () => {
+const Temperature = styled(({className}) => {
   const weatherData = useContext(WeatherContext);
-  const temperature = weatherData ? weatherData.temperature : '';
-  return <span>{temperature}</span>
-}
+  const temperature = weatherData ? weatherData.temperature+" °C" : '';
+  return <span className={className}>{temperature}</span>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 4rem;
+`;
 
 const Wind = () => {
   return (
-    <div>
+    <StyledWind>
       <WindDirection/>
       <WindSpeed/>
-    </div>
+    </StyledWind>
   )
 }
 
 const WindDirection = () => {
   const weatherData = useContext(WeatherContext);
-  const winddirection = weatherData ? weatherData.winddirection : '';
-  return <span>{winddirection}</span>
+  const winddirection = weatherData ? weatherData.winddirection+"deg" : '';
+  console.log(winddirection);
+  return (
+    <StyledWindDirectionToCompas>
+      <p class="sr-only" data-id="windDirectionText" ></p>
+      <StyledWindArrow data-id="windDirectionArrow" direction={winddirection}></StyledWindArrow>
+    </StyledWindDirectionToCompas>
+  )
 }
 
-const WindSpeed = () => {
+const WindSpeed = styled(({className}) => {
   const weatherData = useContext(WeatherContext);
-  const windspeed = weatherData ? weatherData.windspeed : '';
-  return <span>{windspeed}</span>
-}
+  const windspeed = weatherData ? weatherData.windspeed+"km/h" : '';
+  return <span className={className}>{windspeed}</span>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 2rem;
+`
 
 const InformationAboutWheater = () => {
   const weatherData = useContext(WeatherContext);
@@ -146,17 +175,115 @@ const InformationAboutWheater = () => {
 
 const InformationAboutWheaterWrapper = ({children}) =>{
   return (
-    <div>
-        <Temperature />
+    <StyledInformationAboutWheaterWrapper>
         <Wind/>
+        <Temperature />
         <InformationAboutWheater/>
-    </div>
+    </StyledInformationAboutWheaterWrapper>
   )
 }
 
 const StyledWeatherAppWrapper = styled.div`
-  text-align: center;
+  position: relative;
+  text-align:center;
+  margin: 2rem auto;
+  width: 60rem;
+  height: auto;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #002730;
+  box-shadow: 3px 5px 3px 5px;
 `;
+
+const StyledButton = styled.div`
+  border: none;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 10px;
+  outline: none;
+  background-color: hsl(201, 100%, 28%);
+  color: #ffff8b;
+  width:10rem;
+
+  &:hover{
+    background-color: hsl(201, 100%, 23%);
+    color: hsl(60, 100%, 80%);
+    border-bottom: 3px solid  hsl(201, 100%, 18%);
+    border-right: 3px solid  hsl(201, 100%, 18%);
+    }
+  
+`;
+
+const StyledButtonBox = styled.div`
+  position:relative;
+  text-align:center;
+  margin: 1.5rem auto;
+  padding: 0.5rem;
+  height: 3rem;
+  width: auto;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 1.5rem;
+`;
+
+const StyledDataTimeWrapper = styled.div`
+  width: 100%;
+  display: inline-grid;
+  grid-template-columns: auto auto;
+`;
+
+
+const StyledInformationAboutWheaterWrapper = styled.div`
+  width: 100%;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+`;
+
+const StyledTemperature = styled.span`
+
+`;
+
+const StyledWind = styled.div`
+  width: 100%;
+  display: inline-grid;
+  grid-template-columns: auto auto;
+`;
+
+const StyledWindDirectionToCompas = styled.div`
+.sr-only:not(:focus):not(:active) {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+  --size: 6rem;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background-color: rgba(59, 61, 231, 0.5);
+  display: grid;
+  place-items: center;
+
+
+`;
+
+const StyledWindArrow = styled.div`
+  --size:1rem;
+  height: calc(var(--size)*3);
+  width: var(--size);
+  background-color:  #ffff8b;
+  clip-path: polygon(50% 0, 0% 100%, 100% 100%);
+  transform: translateY(-50%)
+  rotate(${props => props.direction || "0deg"});
+  transform-origin: bottom center;
+  transition: transform 500ms ease;
+`;
+
 
 
 export default App;
