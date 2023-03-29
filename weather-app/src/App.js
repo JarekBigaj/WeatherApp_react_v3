@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import { createContext, useContext, useEffect, useState } from "react";
 import { informationAboutWeather} from "./connection";
+import weatherCodeFromFile from './weatherCode.json'
 
 const WeatherContext = createContext(null);
-
+const {weather_code_list} = weatherCodeFromFile;
 const citiesButtonsValues = ['Krakow', 'Marcowka', 'Warsaw'];
 
 function App() {
@@ -136,22 +137,25 @@ const Temperature = styled(({className}) => {
   font-size: 4rem;
 `;
 
-const Wind = () => {
+const Wind = styled(({className}) => {
   return (
-    <StyledWind>
+    <div className={className}>
       <WindDirection/>
       <WindSpeed/>
-    </StyledWind>
+    </div>
   )
-}
+})`
+width: 100%;
+display: inline-grid;
+grid-template-columns: auto auto;
+`;
 
 const WindDirection = () => {
   const weatherData = useContext(WeatherContext);
   const winddirection = weatherData ? weatherData.winddirection+"deg" : '';
-  console.log(winddirection);
   return (
     <StyledWindDirectionToCompas>
-      <p class="sr-only" data-id="windDirectionText" ></p>
+      <p className="sr-only" data-id="windDirectionText" ></p>
       <StyledWindArrow data-id="windDirectionArrow" direction={winddirection}></StyledWindArrow>
     </StyledWindDirectionToCompas>
   )
@@ -165,13 +169,25 @@ const WindSpeed = styled(({className}) => {
   color: #ffff8b;
   font-weight: bold;
   font-size: 2rem;
+  left:0;
 `
 
-const InformationAboutWheater = () => {
+const InformationAboutWheater = styled(({className}) => {
   const weatherData = useContext(WeatherContext);
   const weathercode = weatherData ? weatherData.weathercode : '';
-  return <span>{weathercode}</span>
-}
+  const [informationAboutCurrentWeather] = Object.entries(weather_code_list).filter(([key,value]) => {
+    if(parseInt(key)===weathercode){
+        return value;
+    }
+    return [0,""];
+  });
+  const [code,infoWeather] = informationAboutCurrentWeather;
+  return <span className={className}>{infoWeather}</span>
+})`
+  color: #ffff8b;
+  font-weight: bold;
+  font-size: 2rem;
+`;
 
 const InformationAboutWheaterWrapper = ({children}) =>{
   return (
@@ -241,15 +257,6 @@ const StyledInformationAboutWheaterWrapper = styled.div`
   grid-template-columns: auto auto auto;
 `;
 
-const StyledTemperature = styled.span`
-
-`;
-
-const StyledWind = styled.div`
-  width: 100%;
-  display: inline-grid;
-  grid-template-columns: auto auto;
-`;
 
 const StyledWindDirectionToCompas = styled.div`
 .sr-only:not(:focus):not(:active) {
@@ -268,7 +275,6 @@ const StyledWindDirectionToCompas = styled.div`
   background-color: rgba(59, 61, 231, 0.5);
   display: grid;
   place-items: center;
-
 
 `;
 
